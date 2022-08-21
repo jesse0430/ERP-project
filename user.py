@@ -20,10 +20,10 @@ def get_access_token(account):
 
 def db_init():
     db = pymysql.connect(
-        host='metaage.ntc.im',
-        user='erp',
-        password='erp',
-        db='metaage_sales'
+        host='*****',
+        user='*****',
+        password='*****',
+        db='sales'
     )
     cursor = db.cursor(pymysql.cursors.DictCursor)
     return db, cursor
@@ -47,7 +47,7 @@ def generate_download_headers(extension:str, filename: Optional[str]=None) -> Di
     headers={'Content-Disposition': content_disp}
     return headers
 
-#登入對po_number跟password
+#登入對po_number跟password核對
 class Login(Resource):
     @use_kwargs(LoginRequest, location='json')
     def post(self, **kwargs):
@@ -188,7 +188,7 @@ class Orders(Resource):
                 return {'message':str(e)}
     @use_kwargs(Vague_search, location='json')
     def post(self,action,**kwargs):
-        if action=='Search':
+        if action=='Search': #訂單模糊查詢
             try:
                 Team=kwargs['Team']
                 PO_Name=kwargs['PO_Name']
@@ -205,7 +205,7 @@ class Orders(Resource):
                         return Response(message, status=200,mimetype='application/json')
                     else:
                         return {'message':'no data'}
-                if Role=='staff':
+                if Role=='staff': #原編模糊查詢
                     db, cursor=db_init()
                     sql=f"SELECT * FROM `sales` where PO_Name='{PO_Name}' AND Team='{Team}' AND Purchase_Order_Number LIKE '%{PO_Number}%';"
                     cursor.execute(sql)
@@ -566,7 +566,6 @@ class Upload_order(Resource):
         try:
             file = request.files.get('file')
             result = pd.read_excel(file)
-            # result=result.drop(columns='Unnamed: 0')
             engine = create_engine('mysql+pymysql://erp:erp@ec2-34-208-156-155.us-west-2.compute.amazonaws.com:3306/metaage_sales')
             result.to_sql('test',con=engine, index=False,if_exists='append')
             return {"status":'01'}
